@@ -1,0 +1,17 @@
+{
+  "name": "cypress_backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "run:server": "json-server --watch db.json"
+  },
+  "keywords": [],
+  "author": "Sneyder J.H Rodríguez <sneyder.h.rodriguez@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "cypress": "^9.5.2",
+    "json-server": "^0.17.0",
+    "prettier": "^2.7.1"
+  }
+}
