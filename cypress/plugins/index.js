@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 // ***********************************************************
+const mysql = require("mysql");
+const {MongoClient} = require("mongodb")
 // This example plugins/index.js can be used to load plugins
 //
 // You can change the location of this file or turn off loading
@@ -8,15 +10,52 @@
 // You can read more here:
 // https://on.cypress.io/plugins-guide
 // ***********************************************************
-
 // This function is called when a project is opened or re-opened (e.g. due to
 // the project's config changing)
+function queryTestDb(query, config) {
+  // creates a new mysql connection using credentials from cypress.json env's
+  const connection = mysql.createConnection(config.env.db);
+  // start connection to db
+  connection.connect();
+  // exec query + disconnect to db as a Promise
+  return new Promise((resolve, reject) => {
+    connection.query(query, (error, results) => {
+      if (error) reject(error);
+      else {
+        connection.end();
+        return resolve(results);
+      }
+    });
+  });
+}
+
+  async function connect(client){
+    await client.connect()
+    return client.db("cypress")
+  }
 
 /**
  * @type {Cypress.PluginConfig}
  */
 // eslint-disable-next-line no-unused-vars
-module.exports = (on, config) => {
+module.exports = async(on, config) => {
+  const client = new MongoClient(config.env.mongo)
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
+  on("task", {
+    queryDb: (query) => {
+      return queryTestDb(query, config);
+    },
+    async getListing(){
+      try {
+        const db = await connect(client)
+        const listingsAndReviews = db.collection("listingsAndReviews")
+        return await listingsAndReviews.find({}).limit(50).toArray()
+      } catch (e) {
+        console.error(e)
+      } finally {
+        await client.close()
+      }
+    }
+  });
 }
